@@ -3,9 +3,7 @@ package com.learninggroup.dhss.cluster;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.log4j.Logger;
 
-import com.learninggroup.dhss.core.conf.DHSSConfiguration;
-import com.learninggroup.dhss.core.util.PropertiesTools;
-import com.learninggroup.dhss.zk.ZKClientSingleton;
+import com.learninggroup.dhss.zk.DMasterCuratorExcutor;
 
 
 
@@ -21,51 +19,29 @@ public class DMaster {
 	
 	public CuratorFramework zkClient = null;
 	
-	private String zNodeParentPath = null;
+	private static DMasterCuratorExcutor dmCuratorExcutor = null;
 	
-	private String zNodeMasterHaPath = null;
 	
 	public static void main(String[] args) {
 		DMaster dm = new DMaster();
-		dm.zkClient = ZKClientSingleton.newClient();
-		ZKClientSingleton.start();
-		dm.initSystemZNode();
-		ZKClientSingleton.close();
+		dmCuratorExcutor = DMasterCuratorExcutor.getCuratorExcutor();
+		
+		try {
+			while (true) {
+				if(dmCuratorExcutor.isActive()){
+					Thread.sleep(3000);
+					System.out.println(dmCuratorExcutor.getMyZNode() + " is active node");
+				}
+				Thread.sleep(3000);
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		
 				
 	}
-	
-	/**
-	 * 初始化系统znode
-	 */
-	public void initSystemZNode(){
-		try {
-			
-			zNodeParentPath = PropertiesTools.getValue(DHSSConfiguration.DHSS_ZOOKEEPER_ZNODE_PARENT);
-			zNodeMasterHaPath = PropertiesTools.getValue(DHSSConfiguration.DHSS_ZOOKEEPER_ZNODE_PARENT) + PropertiesTools.getValue(DHSSConfiguration.DHSS_ZOOKEEPER_ZNODE_HA);
-			if(zkClient.checkExists().forPath(zNodeParentPath) == null){
-		        System.out.println("添加成功！！！");  
-				zkClient.create().forPath(zNodeParentPath);
-				zkClient.create().forPath(zNodeMasterHaPath);
-			}
-			//如果在其它master节点创建完成/dhss节点之后出现异常，导致/dhss/dhss-ha节点未创建成功，这里多一个判断
-			if(zkClient.checkExists().forPath(zNodeMasterHaPath) == null){
-				zkClient.create().forPath(zNodeMasterHaPath);
-			}
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			log.error("创建zk节点失败！");
-		}
-	}
 
-	public CuratorFramework getZkClient() {
-		return zkClient;
-	}
-
-	public void setZkClient(CuratorFramework zkClient) {
-		this.zkClient = zkClient;
-	}
-	
 	
 	
 	
