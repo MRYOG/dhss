@@ -9,26 +9,26 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * <li>功能描述：提供list排序通用�?
+ * <li>功能描述：提供list排序通用类
  * @author 高俊
  *
  * @param <T>
- * 		要排序的list中的对象的类�?
+ * 		要排序的list中的对象的类型
  */
 public class SortListUtil {
 
 	/**
-	 * list的排序�?�用方法
+	 * list的排序通用方法
 	 * @param list
 	 * 		要排序的list
 	 * @param method
-	 * 		属�?�的get方法�?
+	 * 		属性的get方法名
 	 * @param sort
 	 * 		排序的类型desc或asc , 默认是desc
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> void sort(List<T> list , final String method , final String sort){
-		Collections.sort(list , new Comparator<T>() {
+		Collections.sort(list , new Comparator() {
 			public int compare(Object o1 , Object o2){
 				int res = 0;
 				try {
@@ -55,7 +55,7 @@ public class SortListUtil {
 	 */
 	@SuppressWarnings("unchecked")
 	public static  <T> void sortByDateField(List<T> list , final String method , final String sort){
-		Collections.sort(list , new Comparator<T>() {
+		Collections.sort(list , new Comparator() {
 			public int compare(Object o1 , Object o2){
 				int res = 0;
 				try {
@@ -84,7 +84,7 @@ public class SortListUtil {
 	
 	@SuppressWarnings("unchecked")
 	public static  <T> void sortByStringDateField(List<T> list , final String method , final String sort ,final SimpleDateFormat format){
-		Collections.sort(list , new Comparator<T>() {
+		Collections.sort(list , new Comparator() {
 			public int compare(Object o1 , Object o2){
 				int res = 0;
 				try {
@@ -116,7 +116,7 @@ public class SortListUtil {
 	 * @param list
 	 * 		要排序的数组列表，和对象列表的排序相比，此处的数组相当于对象
 	 * @param index
-	 * 		排序字段在数组中的下�?
+	 * 		排序字段在数组中的下标
 	 * @param sort
 	 * 		排序规则desc,asc
 	 */
@@ -141,12 +141,12 @@ public class SortListUtil {
 	
 	public static void main(String[] args) {
 		List<String[]> list = new ArrayList<String[]>();
-		String[] a1 = {"在是","22","三�?�修改版"};
-		String[] a2 = {"在d�?","22","二�?�上传版"};
-		String[] a3 = {"在f�?","21","二�?�上传版"};
-		String[] a4 = {"aa�?","21","三�?�修改版"};
-		String[] a5 = {"f�?","23","�?、预审版"};
-		String[] a6 = {"在s","2f","�?、预审版"};
+		String[] a1 = {"在是","22","三、修改版"};
+		String[] a2 = {"在d是","22","二、上传版"};
+		String[] a3 = {"在f是","21","二、上传版"};
+		String[] a4 = {"aa是","21","三、修改版"};
+		String[] a5 = {"f是","23","一、预审版"};
+		String[] a6 = {"在s","2f","一、预审版"};
 		list.add(a1);
 		list.add(a2);
 		list.add(a3);
