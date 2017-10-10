@@ -24,14 +24,14 @@ public class DMaster {
 	
 	public static void main(String[] args) {
 		DMaster dm = new DMaster();
-		dmCuratorExcutor = DMasterCuratorExcutor.getCuratorExcutor();
+//		dmCuratorExcutor = DMasterCuratorExcutor.getCuratorExcutor();
 		
 		try {
 			while (true) {
-				if(dmCuratorExcutor.isActive()){
-					Thread.sleep(3000);
-					System.out.println(dmCuratorExcutor.getMyZNode() + " is active node");
-				}
+//				if(dmCuratorExcutor.isActive()){
+//					Thread.sleep(3000);
+//					System.out.println(dmCuratorExcutor.getMyZNode() + " is active node");
+//				}
 				Thread.sleep(3000);
 			}
 		} catch (InterruptedException e) {

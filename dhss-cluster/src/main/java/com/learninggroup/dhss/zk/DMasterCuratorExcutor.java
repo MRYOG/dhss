@@ -7,6 +7,7 @@ import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
 import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 
 import com.learninggroup.dhss.core.conf.DHSSConfiguration;
@@ -19,32 +20,45 @@ import com.learninggroup.dhss.core.util.PropertiesTools;
  */
 public class DMasterCuratorExcutor extends AbstractZKClient {
 	
+	public static final Logger log = Logger.getLogger(DMasterCuratorExcutor.class);
+	
 	private String zNodeMasterHaPath = null;
+	
+	private String zNodeWorkerPath = null;
 	
 	private String myZNode = null;
 	
-	private PathChildrenCache pc = null;
+	private PathChildrenCache masterPc = null;
 	
-	private PathChildrenCacheListener pclist = null;
+	private PathChildrenCache workerPc = null;
+	
+	private MasterPcListener masterPcListener = null;
+	
+	private WorkerPcListener workerPcListener = null;
 	
 	private  boolean isActive = false;
 	
-	private static DMasterCuratorExcutor dmCuratorExcutor = null;
+	private static DMasterCuratorExcutor dmCuratorExcutor = new DMasterCuratorExcutor();
 	
 	
 	private DMasterCuratorExcutor(){
 		super();
-		this.initSystemZNode();
-		this.listenerMaster();
-		this.registMaster();
+		init();
 	}
 
 	@Override
 	public void doAfterReConnect() {
+		init();
+	}
+	
+	/**
+	 * 初始化
+	 */
+	public void init(){
 		this.initSystemZNode();
 		this.listenerMaster();
 		this.registMaster();
-
+		this.listenerWorker();
 	}
 
 	@Override
@@ -61,16 +75,21 @@ public class DMasterCuratorExcutor extends AbstractZKClient {
 	}
 	
 	/**
-	 * 初始化系统znode
+	 * 初始化系统master znode
 	 */
 	public void initSystemZNode(){
 		try {
 			zNodeMasterHaPath = PropertiesTools.getValue(DHSSConfiguration.DHSS_ZOOKEEPER_ZNODE_PARENT) + PropertiesTools.getValue(DHSSConfiguration.DHSS_ZOOKEEPER_ZNODE_HA);
-
-			//如果在其它master节点创建完成/dhss节点之后出现异常，导致/dhss/dhss-ha节点未创建成功，这里多一个判断
+			zNodeWorkerPath = PropertiesTools.getValue(DHSSConfiguration.DHSS_ZOOKEEPER_ZNODE_PARENT) + PropertiesTools.getValue(DHSSConfiguration.DHSS_ZOOKEEPER_ZNODE_WORKER);
+			
 			if(zkClient.checkExists().forPath(zNodeMasterHaPath) == null){
 				zkClient.create().creatingParentContainersIfNeeded().withMode(CreateMode.PERSISTENT).forPath(zNodeMasterHaPath);
 				log.info("完成添加节点:"+zNodeMasterHaPath); 
+			}
+			
+			if(zkClient.checkExists().forPath(zNodeWorkerPath) == null){
+				zkClient.create().creatingParentContainersIfNeeded().withMode(CreateMode.PERSISTENT).forPath(zNodeWorkerPath);
+				log.info("完成添加节点:"+zNodeWorkerPath); 
 			}
 
 		} catch (Exception e) {
@@ -97,60 +116,43 @@ public class DMasterCuratorExcutor extends AbstractZKClient {
 	 * 添加对/dhss/dhss-ha节点的监控，如果有master节点上线或下线，需要判断是否变更active master节点
 	 */
 	public void listenerMaster(){
-		pc = new PathChildrenCache(zkClient, zNodeMasterHaPath, true); 
+		masterPc = new PathChildrenCache(zkClient, zNodeMasterHaPath, true); 
 		try {
-			pc.start();
-			pclist = new PathChildrenCacheListener() {
-				
-				public void childEvent(CuratorFramework zkClient1, PathChildrenCacheEvent event)
-						throws Exception {
-		            
-					List<ChildData> listMaster = pc.getCurrentData();
-					if(listMaster != null && listMaster.size() > 0){
-						ChildData minDn = listMaster.get(0);
-						if(myZNode.equals(minDn.getPath())){
-							isActive = true;
-							//上线处理
-							log.info("active节点是："+myZNode);
-						}else{
-							isActive = false;
-							//下线处理
-							log.info("节点："+myZNode+" 为standby节点");
-						}
-					}
-				}
-			};
-			pc.getListenable().addListener(pclist);
+			masterPc.start();
+			masterPcListener = new MasterPcListener();
+			masterPcListener.setDmCuratorExcutor(dmCuratorExcutor);
+			masterPcListener.setMasterPc(masterPc);
+			masterPc.getListenable().addListener(masterPcListener);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+	/**
+	 * 添加对/dhss/dhss-worker节点的监控，如果有worker节点上线或下线，需要做相关的处理
+	 */
+	public void listenerWorker(){
+		workerPc = new PathChildrenCache(zkClient, zNodeWorkerPath, true); 
+		try {
+			workerPc.start();
+			workerPcListener = new WorkerPcListener();
+			workerPcListener.setWorkerPc(workerPc);
+			workerPcListener.setDmCuratorExcutor(dmCuratorExcutor);
+			workerPc.getListenable().addListener(workerPcListener);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public String getzNodeMasterHaPath() {
-		return zNodeMasterHaPath;
+	public static DMasterCuratorExcutor getDmCuratorExcutor() {
+		return dmCuratorExcutor;
 	}
 
-	public void setzNodeMasterHaPath(String zNodeMasterHaPath) {
-		this.zNodeMasterHaPath = zNodeMasterHaPath;
-	}
-
-	
-
-	public PathChildrenCache getPc() {
-		return pc;
-	}
-
-	public void setPc(PathChildrenCache pc) {
-		this.pc = pc;
-	}
-
-	public PathChildrenCacheListener getPclist() {
-		return pclist;
-	}
-
-	public void setPclist(PathChildrenCacheListener pclist) {
-		this.pclist = pclist;
+	public static void setDmCuratorExcutor(DMasterCuratorExcutor dmCuratorExcutor) {
+		DMasterCuratorExcutor.dmCuratorExcutor = dmCuratorExcutor;
 	}
 
 	public String getMyZNode() {
