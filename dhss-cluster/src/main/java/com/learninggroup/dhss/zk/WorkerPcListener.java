@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
 
 import com.learninggroup.dhss.cluster.ClusterInfo;
 import com.learninggroup.dhss.cluster.WorkerInfo;
-import com.learninggroup.dhss.core.conf.DHSSConfiguration;
+import com.learninggroup.dhss.core.config.DHSSConfiguration;
 import com.learninggroup.dhss.core.util.DataFormatTool;
 import com.learninggroup.dhss.core.util.PropertiesTools;
 

@@ -9,7 +9,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.log4j.Logger;
 
 import com.learninggroup.dhss.cluster.DMaster;
-import com.learninggroup.dhss.core.conf.DHSSConfiguration;
+import com.learninggroup.dhss.core.config.DHSSConfiguration;
 import com.learninggroup.dhss.core.util.DataFormatTool;
 import com.learninggroup.dhss.core.util.PropertiesTools;
 

@@ -91,6 +91,7 @@ public class ClassLoaderUtil {
        *提供相对于classpath的资源路径，返回属性对象，它是一个散列表
        *@param resource 相对于classpath的路径，如果要查找classpath外面的文件，请使用../来查找
        *@return
+       *
        */
      public static Properties getProperties(String resource) {
         Properties properties = new Properties();

@@ -10,7 +10,7 @@ import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 
-import com.learninggroup.dhss.core.conf.DHSSConfiguration;
+import com.learninggroup.dhss.core.config.DHSSConfiguration;
 import com.learninggroup.dhss.core.util.PropertiesTools;
 
 /**

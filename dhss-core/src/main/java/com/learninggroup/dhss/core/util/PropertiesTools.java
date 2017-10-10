@@ -8,7 +8,7 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
-import com.learninggroup.dhss.core.conf.DHSSConfiguration;
+import com.learninggroup.dhss.core.config.DHSSConfiguration;
 
 /**
  * <li>功能描述：资源加载类

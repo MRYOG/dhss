@@ -7,6 +7,7 @@ package com.learninggroup.dhss.cluster;
  */
 public class WorkerInfo {
 
+	
 	//该worker节点的主机名
 	private String hostName;
 	
